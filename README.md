@@ -1,46 +1,53 @@
 # Recall
 
-Recall is a small web app for keeping track of team meeting notes. It picks out decisions, tasks, and questions for people to check. Later, teammates can ask what happened and open the meeting note behind the answer.
+Recall helps a team find decisions, tasks, and unresolved questions in meeting notes. Ask a question, read the answer, and open the meeting that supports it.
 
-## Try the demo
+The example follows three students building a class-notes app. Their project demo is postponed because sign-in does not work on phones, then moved to Saturday after the fix. The sample is intentionally simple; the product idea is for small teams that need to remember who decided or agreed to do what.
 
-Open `index.html` in a browser. No install or account is needed. The sample story follows three students making a class-notes app:
+## Run it locally
 
-1. Click one of the example questions, or type your own, then open the meeting note linked under the answer.
-2. Open the two meeting notes linked under the answer.
-3. Visit **Meetings** to read the notes and check the saved items.
-4. Add your own short meeting note. Review each suggested decision, task, or question before saving it.
-5. Open **Connections** to see how notes, people, and decisions are related.
-6. Run the six-question check to see which sample answers Recall finds.
+You need Python 3.9+ and Node.js 20.19+.
 
-The sample data and any notes you add are saved in this browser only.
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn backend.main:app --reload --port 8000
+```
 
-## How it works
+In another terminal:
 
-- HTML and CSS make the pages and forms.
-- JavaScript finds sentences that look like decisions, tasks, and questions.
-- A simple word match finds relevant saved items and their meeting notes.
-- Browser storage keeps the demo data on the device.
-- The connections view is drawn as an interactive SVG.
+```sh
+cd web
+npm install
+npm run dev
+```
 
-This version does not use an AI model, a server, or a company account. Its simple rules make it easy to see what it finds and where an answer came from. They also mean it can miss wording it was not designed to recognize.
+Open the local URL printed by Vite (usually `http://127.0.0.1:5173`). The API is at `http://127.0.0.1:8000`, and its interactive docs are at `/docs`. Notes and edits are stored in `backend/recall.db` on your machine. Delete that file to reset the sample workspace.
 
-## How this relates to the internship
+## What works
 
-- **HCI and prototyping:** people can check, edit, or remove suggestions. Answers link back to the original notes.
-- **Knowledge graphs:** the connections view links decisions to people, topics, and meetings. It is a small in-browser graph, not a graph database.
-- **Memory across meetings (the JD's memory theme):** meeting notes are saved as decisions, tasks, and questions, so people can find them later. The sample keeps the earlier decision when a plan changes.
-- **Evaluation:** six sample questions check whether Recall finds the expected detail and its source. This is a demo check, not a user study.
+- Add meeting notes. Recall suggests decisions, tasks, and questions for a person to review.
+- Save, edit, or remove suggestions. Corrections persist in SQLite.
+- Ask one of the sample questions or type your own. Answers link to the meeting notes they came from.
+- See how decisions, people, and meetings connect.
+- Run six sample questions and inspect the retrieved items and source results.
 
-## Product idea
+## Technical approach
 
-- **Who might use it:** small teams that make plans in meetings and need to remember who agreed to do what.
-- **What it is:** a web app. A chat app integration could be explored later, but this demo is not a bot.
-- **Daily use:** after a meeting, add notes and check the suggestions. Before the next meeting, look up a decision or task.
-- **How it might be sold:** a paid team plan is one idea to test with potential users; it has not been validated.
+- **Frontend:** React 19, TypeScript, Vite.
+- **API:** Python 3, FastAPI, Pydantic.
+- **Storage:** SQLite with separate meeting and memory records.
+- **Retrieval:** TF-IDF cosine similarity over saved decisions, tasks, questions, and source text. When a question asks what changed, Recall returns both linked decisions.
+- **Evaluation:** a small, inspectable six-question benchmark with per-question expected items and source checks.
 
-The sample scenario is a class project because it is easy to understand. The product idea is for teams at work too. A useful next study would compare this decision history with a plain meeting summary and ask people which helps them remember why a plan changed.
+This is a research prototype, not a production assistant. It does not call an LLM or use embeddings. The note extractor uses simple patterns, and TF-IDF is a baseline; both can miss paraphrases. The sample benchmark is not a user study and should not be presented as evidence of real-world performance.
 
-## Similar products and open question
+## Connection to the internship
 
-[Fireflies AskFred](https://guide.fireflies.ai/articles/1512776728-global-askfred-get-answers-from-past-meetings-and-web-searches) offers questions across past meetings, while [Notion AI Meeting Notes](https://www.notion.com/help/ai-meeting-notes) captures meeting notes and action items. Finding and summarizing notes is already common. Recall's question to investigate is narrower: **does showing the old decision, the new decision, and the reason for the change help a team remember its choices?** The current demo shows that idea; it does not yet prove it works better.
+- **HCI:** people decide what gets saved, correct the text, and can follow an answer to its source.
+- **Knowledge graphs:** the connection view shows relationships among meetings, people, topics, and decisions. The current graph is generated from SQLite records, not a graph database.
+- **Memory over time:** when a plan changes, the earlier choice and the newer one remain linked.
+- **Applied ML and evaluation:** TF-IDF retrieval provides a baseline to compare with embeddings or a language model later. The benchmark makes expected facts and citations inspectable.
+
+The next research step is to compare the current retrieval with a stronger method on the same questions, then ask people whether the answer and its source help them remember why a decision changed.
