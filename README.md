@@ -25,6 +25,10 @@ npm run dev
 
 Open the local URL printed by Vite (usually `http://127.0.0.1:5173`). The API is at `http://127.0.0.1:8000`, and its interactive docs are at `/docs`. Notes and edits are stored in `backend/recall.db` on your machine. Delete that file to reset the sample workspace.
 
+## Deploy on Vercel
+
+Set the Vercel project's **Root Directory** to the repository root (`.`). Vercel then uses the Python entry point in `pyproject.toml`; its build script builds the React app, and FastAPI serves that build together with the `/api` routes on the same domain. The deployed SQLite database lives in the function's temporary filesystem, so changes are for demo use and may reset when Vercel replaces an instance. Local development continues to use Vite and the separate FastAPI server above.
+
 ## What works
 
 - Add meeting notes. Recall suggests decisions, tasks, and questions for a person to review.

@@ -17,7 +17,13 @@ from pydantic import BaseModel, Field
 
 
 ROOT = Path(__file__).resolve().parent
-DB_PATH = Path(os.getenv("RECALL_DB_PATH", str(ROOT / "recall.db")))
+PROJECT_ROOT = ROOT.parent
+DB_PATH = Path(
+    os.getenv(
+        "RECALL_DB_PATH",
+        "/tmp/recall.db" if os.getenv("VERCEL") else str(ROOT / "recall.db"),
+    )
+)
 STOP_WORDS = {
     "the", "and", "for", "with", "was", "were", "did", "does", "what",
     "when", "where", "who", "how", "why", "from", "into", "this", "that",
@@ -390,3 +396,12 @@ def graph() -> dict[str, Any]:
     people = sorted({item["owner"] for item in items if item["owner"]})
     topics = sorted({entity for item in items for entity in item["entities"]})
     return {"items": items, "people": people, "topics": topics}
+
+
+# On Vercel, the same FastAPI application serves both the React build and /api.
+# In local development, Vite serves the UI and proxies /api to this app instead.
+WEB_DIST = PROJECT_ROOT / "web" / "dist"
+if WEB_DIST.is_dir():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=WEB_DIST, html=True), name="web")
