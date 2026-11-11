@@ -18,10 +18,15 @@ from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = ROOT.parent
+DEFAULT_DB_PATH = (
+    Path("/tmp/recall.db")
+    if os.getenv("VERCEL") or not os.access(ROOT, os.W_OK)
+    else ROOT / "recall.db"
+)
 DB_PATH = Path(
     os.getenv(
         "RECALL_DB_PATH",
-        "/tmp/recall.db" if os.getenv("VERCEL") else str(ROOT / "recall.db"),
+        str(DEFAULT_DB_PATH),
     )
 )
 STOP_WORDS = {
